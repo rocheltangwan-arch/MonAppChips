@@ -1,27 +1,20 @@
 name: Build APK
-on: [push, pull_request]
+on: [push]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v2
 
-      - name: Get Date
-        shell: bash
-        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
-        id: get-date
-
       - name: Build with Buildozer
         uses: ArtemSerebriakov/buildozer-action@v1
-        id: buildozer
         with:
-          save_build_dir: true
           buildozer_version: master
           command: buildozer -v android debug
 
       - name: Upload APK
         uses: actions/upload-artifact@v2
         with:
-          name: GestionChips-${{ steps.get-date.outputs.date }}
+          name: MonAppChips-APK
           path: bin/*.apk
