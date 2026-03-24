@@ -8,12 +8,14 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build with Buildozer
+        # Attention : Respecte bien les majuscules ici
         uses: ArtemSerebriakov/buildozer-action@v1
         with:
           buildozer_version: master
           command: buildozer -v android debug
 
       - name: Upload APK
+        # Utilisation de la version v4 demandée par GitHub
         uses: actions/upload-artifact@v4
         with:
           name: MonAppChips-APK
