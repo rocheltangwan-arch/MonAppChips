@@ -12,16 +12,19 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Installation des dépendances Linux
+      - name: Installation des dépendances Linux (Version Complète)
         run: |
           sudo apt update
-          sudo apt install -y git zip unzip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev libbz2-dev libreadline-dev libsqlite3-dev tk-dev libgdbm-dev libdb-dev libpcap-dev xz-utils libexpat1-dev
+          sudo apt install -y git zip unzip autoconf libtool pkg-config zlib1g-dev \
+          libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev \
+          libbz2-dev libreadline-dev libsqlite3-dev tk-dev libgdbm-dev libdb-dev \
+          libpcap-dev xz-utils libexpat1-dev
           pip install --upgrade pip
           pip install buildozer cython==0.29.33
-          
+
       - name: Fabrication de l'APK
         run: |
-          yes | buildozer -v android debug
+          buildozer -v android debug
         env:
           BUILDOZER_ALLOW_KIVY_INSTALL_AS_ROOT: 1
 
