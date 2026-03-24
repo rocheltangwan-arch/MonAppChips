@@ -1,0 +1,285 @@
+# gestion.kv
+
+<MenuButton@Button>:
+    background_normal: ''
+    background_color: (0.1, 0.4, 0.7, 1) if self.state == 'down' else (0.1, 0.1, 0.1, 1)
+    size_hint_y: None
+    height: "50dp"
+    bold: True
+
+<TabButton@Button>:
+    background_normal: ''
+    bold: True
+    size_hint: None, None
+    width: "120dp"
+    height: "40dp"
+
+<MainLayout>:
+    orientation: 'horizontal'
+    canvas.before:
+        Color:
+            rgba: 0.1, 0.1, 0.1, 1
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+    # --- BARRE LATERALE ---
+    BoxLayout:
+        orientation: 'vertical'
+        size_hint_x: 0.25
+        padding: 10
+        spacing: 10
+        canvas.before:
+            Color:
+                rgba: 0.05, 0.05, 0.05, 1
+            Rectangle:
+                size: self.size
+                pos: self.pos
+
+        Label:
+            text: "CHIPS MANAGER"
+            font_size: '18sp'
+            bold: True
+            size_hint_y: None
+            height: "80dp"
+
+        MenuButton:
+            text: "Production"
+            on_release: sm_principal.current = 'screen_prod'
+        MenuButton:
+            text: "Bilan"
+            on_release:
+                sm_principal.current = 'screen_benef'
+                root.calculer_bilan()
+        MenuButton:
+            text: "Archives"
+            on_release:
+                sm_principal.current = 'screen_archives'
+                root.charger_archives()
+        Widget:
+
+    # --- ZONE PRINCIPALE ---
+    ScreenManager:
+        id: sm_principal
+
+        Screen:
+            name: 'screen_prod'
+            BoxLayout:
+                orientation: 'vertical'
+                padding: 15
+                spacing: 10
+
+                Button:
+                    text: "DEMARRER PRODUCTION" if not root.session_active else "CLOTURER ET ARCHIVER"
+                    size_hint_y: None
+                    height: "50dp"
+                    bold: True
+                    background_color: (0, 0.6, 0.1, 1) if not root.session_active else (0.8, 0.1, 0.1, 1)
+                    on_release: root.toggle_session()
+
+                BoxLayout:
+                    size_hint_y: None
+                    height: "45dp"
+                    spacing: 5
+                    pos_hint: {'center_x': 0.5}
+                    size_hint_x: None
+                    width: "245dp"
+                    TabButton:
+                        text: "Dépenses"
+                        background_color: (0.1, 0.4, 0.8, 1) if sm_interne.current == 'tab_dep' else (0.2, 0.2, 0.2, 1)
+                        on_release: sm_interne.current = 'tab_dep'
+                    TabButton:
+                        text: "Ventes"
+                        background_color: (0.1, 0.4, 0.8, 1) if sm_interne.current == 'tab_ven' else (0.2, 0.2, 0.2, 1)
+                        on_release: sm_interne.current = 'tab_ven'
+
+                ScreenManager:
+                    id: sm_interne
+                    Screen:
+                        name: 'tab_dep'
+                        BoxLayout:
+                            orientation: 'vertical'
+                            spacing: 10
+                            disabled: not root.session_active
+                            GridLayout:
+                                cols: 2
+                                size_hint_y: None
+                                height: "100dp"
+                                spacing: 10
+                                Label:
+                                    text: "Type:"
+                                Spinner:
+                                    id: dep_type
+                                    text: "Plantain"
+                                    values: ["Plantain", "Gaz", "Huile", "Personnel", "Autre"]
+                                Label:
+                                    text: "Montant:"
+                                TextInput:
+                                    id: dep_mt
+                                    input_filter: 'float'
+
+                            BoxLayout:
+                                size_hint_y: None
+                                height: "45dp"
+                                spacing: 10
+                                Button:
+                                    text: "ENREGISTRER"
+                                    on_release: root.sauvegarder_entree("DEPENSE", dep_type.text, dep_mt.text)
+                                Button:
+                                    text: "ANNULER"
+                                    size_hint_x: 0.3
+                                    background_color: 0.8, 0.2, 0.1, 1
+                                    on_release: root.supprimer_derniere("DEPENSE")
+
+                            ScrollView:
+                                Label:
+                                    id: hist_depenses_label
+                                    size_hint_y: None
+                                    height: self.texture_size[1]
+                                    text_size: self.width, None
+
+                    Screen:
+                        name: 'tab_ven'
+                        BoxLayout:
+                            orientation: 'vertical'
+                            spacing: 10
+                            disabled: not root.session_active
+                            BoxLayout:
+                                size_hint_y: None
+                                height: "40dp"
+                                spacing: 5
+                                TextInput:
+                                    id: part_in
+                                    hint_text: "Nouveau partenaire"
+                                Button:
+                                    text: "+"
+                                    size_hint_x: None
+                                    width: "40dp"
+                                    on_release: root.ajouter_nouveau_partenaire(part_in.text)
+
+                            GridLayout:
+                                cols: 2
+                                size_hint_y: None
+                                height: "100dp"
+                                spacing: 10
+                                Label:
+                                    text: "Client:"
+                                Spinner:
+                                    id: ven_part
+                                    text: "Simple"
+                                    values: root.liste_partenaires
+                                Label:
+                                    text: "Qté / Prix:"
+                                BoxLayout:
+                                    TextInput:
+                                        id: ven_q
+                                        hint_text: "Qté"
+                                    TextInput:
+                                        id: ven_p
+                                        hint_text: "Prix"
+
+                            BoxLayout:
+                                size_hint_y: None
+                                height: "45dp"
+                                spacing: 10
+                                Button:
+                                    text: "VENDRE"
+                                    background_color: 0.2, 0.7, 0.3, 1
+                                    on_release: root.sauvegarder_vente(ven_part.text, ven_q.text, ven_p.text)
+                                Button:
+                                    text: "ANNULER"
+                                    size_hint_x: 0.3
+                                    background_color: 0.8, 0.2, 0.1, 1
+                                    on_release: root.supprimer_derniere("VENTE")
+
+                            ScrollView:
+                                Label:
+                                    id: hist_ventes_label
+                                    size_hint_y: None
+                                    height: self.texture_size[1]
+                                    text_size: self.width, None
+
+        # ECRAN BILAN
+        Screen:
+            name: 'screen_benef'
+            BoxLayout:
+                orientation: 'vertical'
+                padding: 20
+                spacing: 15
+                Label:
+                    text: root.gains_texte
+                    markup: True
+                    font_size: '22sp'
+                    size_hint_y: None
+                    height: "50dp"
+
+                # Diagramme Vertical
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint: (None, None)
+                    size: ('200dp', '150dp')
+                    pos_hint: {'center_x': 0.5}
+                    spacing: '40dp'
+                    BoxLayout:
+                        orientation: 'vertical'
+                        Widget:
+                            canvas:
+                                Color:
+                                    rgba: 0.9, 0.2, 0.1, 1
+                                Rectangle:
+                                    pos: self.x + (self.width/4), self.y
+                                    size: self.width/2, (root.tot_d_diagramme / root.montant_max_diagramme) * self.height if root.montant_max_diagramme > 0 else 0
+                        Label:
+                            text: "Dépenses"
+                            font_size: '10sp'
+                    BoxLayout:
+                        orientation: 'vertical'
+                        Widget:
+                            canvas:
+                                Color:
+                                    rgba: 0.2, 0.8, 0.3, 1
+                                Rectangle:
+                                    pos: self.x + (self.width/4), self.y
+                                    size: self.width/2, (root.tot_v_diagramme / root.montant_max_diagramme) * self.height if root.montant_max_diagramme > 0 else 0
+                        Label:
+                            text: "Ventes"
+                            font_size: '10sp'
+
+                ScrollView:
+                    Label:
+                        id: hist_bilan_detail
+                        size_hint_y: None
+                        height: self.texture_size[1]
+                        text_size: self.width, None
+
+        # ECRAN ARCHIVES
+        Screen:
+            name: 'screen_archives'
+            BoxLayout:
+                orientation: 'vertical'
+                padding: '10dp'
+                spacing: '5dp'
+                Label:
+                    text: "HISTORIQUE PAR SESSION"
+                    size_hint_y: None
+                    height: "40dp"
+                    bold: True
+                    color: 0.2, 0.7, 1, 1
+
+                ScrollView:
+                    canvas.before:
+                        Color:
+                            rgba: 0.05, 0.05, 0.05, 1
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
+                    Label:
+                        id: archives_label
+                        markup: True
+                        size_hint_y: None
+                        height: self.texture_size[1]
+                        text_size: self.width - 20, None
+                        halign: 'left'
+                        valign: 'top'
+                        font_size: '14sp'
+                        line_height: 1.3
